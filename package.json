@@ -1,0 +1,32 @@
+{
+  "name": "detourjs",
+  "version": "0.1.0",
+  "description": "define and execute task pipeline",
+  "main": "example.js",
+  "dependencies": {
+    "chalk": "^2.1.0",
+    "koa": "^2.3.0",
+    "koa-router": "^7.2.1",
+    "minimist": "^1.2.0",
+    "ssh2": "^0.5.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terrywh/detourjs.git"
+  },
+  "keywords": [
+    "nodejs",
+    "task",
+    "pipeline"
+  ],
+  "author": "terrywh",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/terrywh/detourjs/issues"
+  },
+  "homepage": "https://github.com/terrywh/detourjs#readme"
+}
