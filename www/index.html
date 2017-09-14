@@ -14,8 +14,9 @@
 				<div class="col-5">
 					<div class="row">
 						<div class="col-6">
-							<form class="form-inline mt-2" v-on:submit="filterTask">
+							<form class="mt-2" v-on:submit="filterTask">
 								<div class="form-group input-group">
+									<span class="input-group-addon">🖨️ 定义</span>
 									<input type="text" class="form-control" placeholder="过滤" aria-label="task filter" v-model="taskFilter">
 									<span class="input-group-btn">
 										<button class="btn btn-light">🔍</button>
@@ -32,8 +33,9 @@
 							</ul>
 						</div>
 						<div class="col-6">
-							<form class="form-inline mt-2" v-on:submit="filterData">
+							<form class="mt-2" v-on:submit="filterData">
 								<div class="form-group input-group">
+									<span class="input-group-addon">🖨️ 数据</span>
 									<input type="text" class="form-control" placeholder="过滤" aria-label="data filter" v-model="dataFilter">
 									<span class="input-group-btn">
 										<button class="btn btn-light">🔍</button>
@@ -50,34 +52,45 @@
 					</div>
 				</div>
 				<div class="col-7" ref="progress" id="progress">
-					<form class="form-inline row mt-2" v-on:submit.prevent="startTask">
-						<div class="input-group col-xl-9 col-md-6">
+					<form class="mt-2" v-on:submit.prevent="startTask">
+						<div class="input-group">
 							<span class="input-group-addon">🛠️ 参数</span>
 							<input type="text" class="form-control" v-model="activeArgv" />
-						</div>
-						<div class="col-xl-3 col-md-6">
-							<button type="submit" class="btn btn-info" v-bind="{disabled: taskStatus > 0 || !activeTask}">
-								▶️ 启动
-							</button>
-							<button type="button" class="btn btn-info" v-bind="{disabled: taskStatus < 3}" v-on:click="killTask">
-								🛑 终止
-							</button>
+							<span class="input-group-btn">
+								<button type="submit" class="btn btn-info" v-bind="{disabled: taskStatus > 0 || !activeTask}">
+									▶️ 启动
+								</button>
+							</span>
+							<span class="input-group-btn">
+								<button type="button" class="btn btn-info" v-bind="{disabled: taskStatus < 3}" v-on:click="killTask">
+									🛑 终止
+								</button>
+							</span>
 						</div>
 					</form> 
 					<div class="list-group mt-2 mb-4">
 						<li v-for="poll in taskPoll" class="list-group-item"
-								v-bind:class="{'list-group-item-danger': poll.status == -203 || poll.status == -200, 'list-group-item-success': poll.status != -203 && poll.status != -200}">
+								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204}">
 
-							<small v-if="poll.status != -100" class="float-right text-secondary">{{parseInt(poll.time/1000*10)/10}}s</small>
+							<small v-if="poll.status != -100 && poll.status != -200" class="float-right badge badge-light badge-pill">{{parseInt(poll.time/1000*10)/10}}s</small>
 
-							<div v-if="poll.status == -100" class="text-center"><strong>{{poll.data}}</strong></div>
+							<div v-if="poll.status == -100">
+								<h5>
+									{{poll.data.name}}
+									<small><span class="text-secondary">{{poll.data.data}}</span></small>
+								</h5>
+								<div>
+									<small><span class="text-secondary">{{poll.data.argv}}</span></small>
+								</div>
+							</div>
 							<span v-if="poll.status == -101">✴️ 任务开始</span>
 							<span v-if="poll.status == 0">🕑 步骤： <code>{{poll.data}}</code></span>
 							<span v-if="poll.status == -201">✔️ 完成： <code>{{poll.data}}</code></span>
-							<pre v-if="poll.status > 0"><code>{{poll.data}}</code></pre>
+							<pre v-if="poll.status > 0"><code>{{poll.data.substr(2)}}</code></pre>
 							<span v-if="poll.status == -202">✅ 任务结束</span>
 							<pre v-if="poll.status == -203">❌ {{poll.data}}</pre>
-							<span v-if="poll.status == -200">❌ 无法获取任务状态</span>
+							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，但任务可能还在运行中~</pre>
+							<span v-if="poll.status == -200"></span>
 						</li>
 						<li class="list-group-item" v-if="taskLast.status != -200 && taskLast.status != -202 && taskLast.status != -203">
 							<i class="loader">...</i>

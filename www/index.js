@@ -26,8 +26,16 @@
 			this.activeTask = selected[0] || "";
 			this.activeData = selected[1] || "";
 			this.activeArgv = selected[3] || "";
+
+			window.onbeforeunload = this.beforeUnload;
 		},
 		methods: {
+			beforeUnload: function(e) {
+				if(this.taskStatus != 0) {
+					// 状态文字在 chrome > v51 后就看不到了~
+					return "确定要走？当前任务还未结束，走了可就看不到状态啦~";
+				}
+			},
 			reload: async function() {
 				let data;
 				({data} = await (await fetch("/task/list")).json());
@@ -61,7 +69,11 @@
 					this.taskPoll.splice(0, this.taskPoll.length);
 					this.statTask({
 						status: -100,
-						data: this.activeTask + " : " + this.activeData,
+						data: {
+							name: this.activeTask,
+							data: this.activeData,
+							argv: this.activeArgv,
+						},
 					});
 					this.pollTask();
 				}else{
@@ -92,20 +104,24 @@
 				task.time = Date.now() - this.taskTime;
 				// this.taskTime += task.time;
 				switch(task.status) {
+				case 0: // 步骤开始
+					break;
 				case -100: // 准备启动
 					task.time = Date.now();
 					break;
 				case -101: // 进程开始
 					++this.taskStatus; // 3
 					break;
-				case 0: // 步骤开始
+				case -200: // 全部结束
 					break;
 				case -201: // 步骤结束
 					break;
-				case -200: // 未知状态结束
 				case -202: // 进程结束
 				case -203: // 异常
+				case -204:
+					this.taskStatus = 0;
 					this.taskPoll.push(task);
+					this.statTask({status: -200});
 					return false;
 				default: // > 0 状态数据
 					if(task.data) break;
@@ -117,15 +133,19 @@
 			pollTask: function() {
 				fetch("/task/poll?id=" + this.taskId).then((res) => {
 					return res.json();
+				}, (err) => {
+					return {errno: 0, errmsg: "", data: {status: -204}};
 				}).then((r) => {
-					if(this.statTask(r && r.errno ? {status: -200} : r.data)) {
-						setTimeout(this.pollTask.bind(this), 200);
+					if(this.statTask(r && r.errno ? {status: -204} : r.data)) {
+						setTimeout(this.pollTask.bind(this), 250);
 						clearTimeout(this.timeoutScroll);
 						this.timeoutScroll = setTimeout(() => {
 							Velocity(this.$refs.progress.querySelector(".list-group-item:last-child"),
-								"scroll", { container: this.$refs.progress, duration: 200 });
-						}, 200);
+								"scroll", { container: this.$refs.progress, duration: 250 });
+						}, 250);
 					}
+				}, (err) => {
+					this.statTask({status: -204});
 				});
 			},
 			selectTask: function(task) {
