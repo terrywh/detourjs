@@ -53,7 +53,7 @@
 						</div>
 					</div>
 				</div>
-				<div class="col-7" ref="progress" id="progress">
+				<div class="col-7" ref="progress">
 					<form class="mt-2" v-on:submit.prevent="">
 						<div class="input-group">
 							<span class="input-group-addon">🛠️ 参数</span>
@@ -70,7 +70,7 @@
 							</span>
 						</div>
 					</form> 
-					<div class="list-group mt-2 mb-4">
+					<div class="list-group mt-2 mb-4" v-cloak>
 						<li v-for="poll in taskPoll" class="list-group-item"
 								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204 || poll.status== -205, 'list-group-item-warning': poll.status == -206}">
 
