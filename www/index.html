@@ -14,7 +14,7 @@
 				<div class="col-5">
 					<div class="row">
 						<div class="col-6">
-							<form class="mt-2" v-on:submit="filterTask">
+							<form class="mt-2" v-on:submit.prevent="filterTask">
 								<div class="form-group input-group">
 									<span class="input-group-addon">🖨️ 定义</span>
 									<input type="text" class="form-control" placeholder="过滤" aria-label="task filter" v-model="taskFilter">
@@ -23,17 +23,16 @@
 									</span>
 								</div>
 							</form>
+							{{taskName}}
 							<ul class="list-group mt-2">
-								<a v-for="task in tasks" href="#" 
+								<a v-for="task in tasks" v-show="!task.hide" href="#" 
 									class="list-group-item list-group-item-action"
-									v-bind:class="{active: task == activeTask}"
-									v-on:click.prevent="selectTask(task)">
-									{{task}}
-								</a>
+									v-bind:class="{active: task.file == taskName}"
+									v-on:click.prevent="setTask(task)">{{task.file}}</a>
 							</ul>
 						</div>
 						<div class="col-6">
-							<form class="mt-2" v-on:submit="filterData">
+							<form class="mt-2" v-on:submit.prevent="filterData">
 								<div class="form-group input-group">
 									<span class="input-group-addon">🖨️ 数据</span>
 									<input type="text" class="form-control" placeholder="过滤" aria-label="data filter" v-model="dataFilter">
@@ -42,27 +41,28 @@
 									</span>
 								</div>
 							</form>
+							{{taskData}}
 							<ul class="list-group mt-2">
-								<a v-for="data in datas" href="#" 
+								<a v-for="data in datas" v-show="!data.hide" href="#" 
 									class="list-group-item list-group-item-action"
-									v-bind:class="{active: data == activeData}"
-									v-on:click.prevent="selectData(data)">{{data}}</a>
+									v-bind:class="{active: data.file == taskData}"
+									v-on:click.prevent="setData(data)">{{data.file}}</a>
 							</ul>
 						</div>
 					</div>
 				</div>
 				<div class="col-7" ref="progress" id="progress">
-					<form class="mt-2" v-on:submit.prevent="startTask">
+					<form class="mt-2" v-on:submit.prevent="">
 						<div class="input-group">
 							<span class="input-group-addon">🛠️ 参数</span>
-							<input type="text" class="form-control" v-model="activeArgv" />
+							<input type="text" class="form-control" v-bind:value="taskArgv" v-on:change="setArgv($event.target.value)" />
 							<span class="input-group-btn">
-								<button type="submit" class="btn btn-info" v-bind="{disabled: taskStatus > 0 || !activeTask}">
+								<button v-on:click="startTask" type="button" class="btn btn-info" v-bind="{disabled: taskStat > 0 || !taskName}">
 									▶️ 启动
 								</button>
 							</span>
 							<span class="input-group-btn">
-								<button type="button" class="btn btn-info" v-bind="{disabled: taskStatus < 3}" v-on:click="killTask">
+								<button v-on:click="killTask" type="button" class="btn btn-info" v-bind="{disabled: taskStat < 3}" v-on:click="killTask">
 									🛑 终止
 								</button>
 							</span>

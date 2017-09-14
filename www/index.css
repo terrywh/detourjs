@@ -17,7 +17,7 @@ html, body, #app,
 #app .btn-light:active {
 	border-color: #dae0e5;
 }
-#app .list-group-item.list-group-info pre {
+#app .list-group-item.list-group-item-info pre {
 	margin-bottom: 0;
   color: #0c5460;
   padding-left: 1.5rem;

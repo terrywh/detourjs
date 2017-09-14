@@ -6,10 +6,10 @@
 			datas: [],
 			taskFilter: "",
 			dataFilter: "",
-			activeTask: "",
-			activeData: "empty",
-			activeArgv: "",
-			taskStatus: 0,
+			taskName: "",
+			taskData: "",
+			taskArgv: "",
+			taskStat: 0,
 			taskId: "",
 			taskPoll: [],
 			taskTime: 0,
@@ -21,80 +21,85 @@
 		},
 		created: function() {
 			this.reload();
-			let selected = location.hash.substr(1).split("|", 3);
 			
-			this.activeTask = selected[0] || "";
-			this.activeData = selected[1] || "";
-			this.activeArgv = selected[3] || "";
-
 			window.onbeforeunload = this.beforeUnload;
+			window.onhashchange   = this.hashChange;
+			this.hashChange();
 		},
 		methods: {
 			beforeUnload: function(e) {
-				if(this.taskStatus != 0) {
+				if(this.taskStat != 0) {
 					// 状态文字在 chrome > v51 后就看不到了~
 					return "确定要走？当前任务还未结束，走了可就看不到状态啦~";
 				}
 			},
+			hashChange: function(e) {
+				let parts = location.hash.substr(1).split("|", 3);
+				while(parts.length < 3) parts.push("");
+				[this.taskName, this.taskData, this.taskArgv] = parts;
+			},
 			reload: async function() {
-				let data;
-				({data} = await (await fetch("/task/list")).json());
-				this.tasks = data;
-				// this.tasks = data.map((item) => {
-				// 	return item.substr(0, item.length-3);
-				// });
-				({data} = await (await fetch("/data/list")).json());
-				this.datas = data;
-				if(this.tasks.indexOf(this.activeTask) === -1) {
-					this.activeTask = "";
-				}
-				if(this.datas.indexOf(this.activeData) === -1) {
-					this.activeData = "";
+				let items;
+				({data: items} = await (await fetch("/task/list")).json());
+				this.tasks = items.map((item) => {
+					return {"file": item, "hide": false};
+				});
+				({data: items} = await (await fetch("/data/list")).json());
+				this.datas = items.map((item) => {
+					return {"file": item, "hide": false};
+				});
+			},
+			filterTask: function() {
+				for(let i=0;i<this.tasks.length;++i) {
+					if(this.tasks[i].indexOf(this.taskFilter) == -1) {
+						this.tasks[i].hide = true;
+					}else{
+						this.tasks[i].hide = false;
+					}
 				}
 			},
-			filterTask: function() {},
-			filterData: function() {},
+			filterData: function() {
+				for(let i=0;i<this.datas.length;++i) {
+					if(this.datas[i].indexOf(this.taskFilter) == -1) {
+						this.datas[i].hide = true;
+					}else{
+						this.datas[i].hide = false;
+					}
+				}
+			},
 			startTask: async function() {
-				++this.taskStatus;
+				++this.taskStat;
 				let r = await (await fetch("/task/start?name="
-					+ encodeURIComponent(this.activeTask)
+					+ encodeURIComponent(this.taskName)
 					+ "&data="
-					+ encodeURIComponent(this.activeData)
+					+ encodeURIComponent(this.taskData)
 					+ "&argv="
-					+ encodeURIComponent(this.activeArgv))).json();
+					+ encodeURIComponent(this.taskArgv))).json();
 				if(r && r.errno == 0) {
 					this.taskId = r.data;
-					++this.taskStatus;
+					++this.taskStat;
 
 					this.taskPoll.splice(0, this.taskPoll.length);
 					this.statTask({
 						status: -100,
 						data: {
-							name: this.activeTask,
-							data: this.activeData,
-							argv: this.activeArgv,
+							name: this.taskName,
+							data: this.taskData,
+							argv: this.taskArgv,
 						},
 					});
 					this.pollTask();
 				}else{
 					/// TODO：启动失败如何处理
-					this.taskStatus = -1;
-				}
-			},
-			stopTask: async function() {
-				--this.taskStatus;
-				let r = await (await fetch("/task/stop?id=" + this.taskId)).json();
-				if(r && r.errno == 0) {
-					this.taskId = "";
-					this.taskStatus = 0;
+					this.taskStat = -1;
 				}
 			},
 			killTask: async function() {
-				--this.taskStatus;
+				--this.taskStat;
 				let r = await (await fetch("/task/kill?id=" + this.taskId)).json();
 				if(r && r.errno == 0) {
 					this.taskId = "";
-					this.taskStatus = 0;
+					this.taskStat = 0;
 				}
 			},
 			statTask: function(task) {
@@ -110,7 +115,7 @@
 					task.time = Date.now();
 					break;
 				case -101: // 进程开始
-					++this.taskStatus; // 3
+					++this.taskStat; // 3
 					break;
 				case -200: // 全部结束
 					break;
@@ -119,7 +124,7 @@
 				case -202: // 进程结束
 				case -203: // 异常
 				case -204:
-					this.taskStatus = 0;
+					this.taskStat = 0;
 					this.taskPoll.push(task);
 					this.statTask({status: -200});
 					return false;
@@ -148,13 +153,14 @@
 					this.statTask({status: -204});
 				});
 			},
-			selectTask: function(task) {
-				this.activeTask = task;
-				location.hash = "#" + this.activeTask + "|" + this.activeData + "|" + this.activeArgv;
+			setTask: function(task) {
+				location.hash = "#" + task.file + "|" + this.taskData + "|" + this.taskArgv;
 			},
-			selectData: function(data) {
-				this.activeData = data;
-				location.hash = "#" + this.activeTask + "|" + this.activeData + "|" + this.activeArgv;
+			setData: function(data) {
+				location.hash = "#" + this.taskName + "|" + data.file + "|" + this.taskArgv;
+			},
+			setArgv: function(argv) {
+				location.hash = "#" + this.taskName + "|" +this.taskData + "|" + argv;
 			},
 		}
 	});
