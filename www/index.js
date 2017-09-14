@@ -112,7 +112,7 @@
 					this.taskId = "";
 					this.taskStat = 0;
 					this.statTask({status: -206});
-					clearTimeout(this.timeoutPoll);
+					// clearTimeout(this.timeoutPoll);
 				}else{
 					this.statTask({status: -205});
 				}
@@ -122,7 +122,7 @@
 					this.taskTime = Date.now()
 				}
 				task.time = Date.now() - this.taskTime;
-				// this.taskTime += task.time;
+				this.taskTime += task.time;
 				switch(task.status) {
 				case 0: // 步骤开始
 					break;
@@ -132,7 +132,7 @@
 				case -101: // 进程开始
 					++this.taskStat; // 3
 					break;
-				case -200: // 全部结束
+				case -200: // 结束底部
 					break;
 				case -201: // 步骤结束
 					break;
@@ -162,6 +162,7 @@
 				}, (err) => {
 					return {errno: 0, errmsg: "", data: {status: -204}};
 				}).then((r) => {
+					if(this.taskStat == 0) return; // 被用户提前终止时，取消本次结果
 					if(this.statTask(r && r.errno ? {status: -204} : r.data)) {
 						this.timeoutPoll = setTimeout(this.pollTask.bind(this), 250);
 						clearTimeout(this.timeoutScroll);

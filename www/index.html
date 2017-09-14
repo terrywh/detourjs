@@ -41,6 +41,10 @@
 								</div>
 							</form>
 							<ul class="list-group mt-2">
+								<a href="#" 
+									class="list-group-item list-group-item-action"
+									v-bind:class="{active: '' == taskData}"
+									v-on:click.prevent="setData({file: '', hide: false})">/empty.js</a>
 								<a v-for="data in datas" v-show="!data.hide" href="#" 
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: data.file == taskData}"
@@ -89,7 +93,7 @@
 							<pre v-if="poll.status == -203">❌ {{poll.data}}</pre>
 							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，任务可能还在运行~</pre>
 							<pre v-if="poll.status == -205">❌ 错误：无法获取任务状态，任务可能没有启动~</pre>
-							<pre v-if="poll.status == -206">⏹️ 终止：任务被用户终止运行，任务结果可能不确定~</pre>
+							<pre v-if="poll.status == -206">⏹️ 终止：由于任务被用户提前终止，无法确认任务执行结果~</pre>
 							<span v-if="poll.status == -200"></span>
 						</li>
 						<li class="list-group-item" v-if="taskLast.status != -200 && taskLast.status != -202 && taskLast.status != -203">

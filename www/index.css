@@ -10,6 +10,7 @@ html, body, #app,
 #app .row:first-child .col-6,
 #app .row:first-child .col-7 {
 	overflow-y: scroll;
+  background-color:#fcfcfc;
 }
 #app .btn-light {
 	border-color: #dfe5ea;
