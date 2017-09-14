@@ -60,7 +60,7 @@
 								</button>
 							</span>
 							<span class="input-group-btn">
-								<button v-on:click="killTask" type="button" class="btn btn-info" v-bind="{disabled: taskStat < 3}" v-on:click="killTask">
+								<button v-on:click="killTask" type="button" class="btn btn-info" v-bind="{disabled: taskStat < 2}" v-on:click="killTask">
 									🛑 终止
 								</button>
 							</span>
@@ -68,7 +68,7 @@
 					</form> 
 					<div class="list-group mt-2 mb-4">
 						<li v-for="poll in taskPoll" class="list-group-item"
-								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204}">
+								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204 || poll.status== -205}">
 
 							<small v-if="poll.status != -100 && poll.status != -200" class="float-right badge badge-light badge-pill">{{parseInt(poll.time/1000*10)/10}}s</small>
 
@@ -87,7 +87,8 @@
 							<pre v-if="poll.status > 0"><code>{{poll.data.substr(2)}}</code></pre>
 							<span v-if="poll.status == -202">✅ 任务结束</span>
 							<pre v-if="poll.status == -203">❌ {{poll.data}}</pre>
-							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，但任务可能还在运行中~</pre>
+							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，任务可能还在运行~</pre>
+							<pre v-if="poll.status == -205">❌ 错误：无法获取任务状态，任务可能没有启动~</pre>
 							<span v-if="poll.status == -200"></span>
 						</li>
 						<li class="list-group-item" v-if="taskLast.status != -200 && taskLast.status != -202 && taskLast.status != -203">

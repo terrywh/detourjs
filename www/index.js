@@ -69,30 +69,41 @@
 			},
 			startTask: async function() {
 				++this.taskStat;
-				let r = await (await fetch("/task/start?name="
+				fetch("/task/start?name="
 					+ encodeURIComponent(this.taskName)
 					+ "&data="
 					+ encodeURIComponent(this.taskData)
 					+ "&argv="
-					+ encodeURIComponent(this.taskArgv))).json();
-				if(r && r.errno == 0) {
-					this.taskId = r.data;
-					++this.taskStat;
+					+ encodeURIComponent(this.taskArgv)).then(res => res.json(), err => {
+						return {errno: -1, errmsg: "failed to start task"};
+					}).then(r => {
+						if(r && r.errno == 0) {
+							this.taskId = r.data;
+							++this.taskStat;
 
-					this.taskPoll.splice(0, this.taskPoll.length);
-					this.statTask({
-						status: -100,
-						data: {
-							name: this.taskName,
-							data: this.taskData,
-							argv: this.taskArgv,
-						},
+							this.taskPoll.splice(0, this.taskPoll.length);
+							this.statTask({
+								status: -100,
+								data: {
+									name: this.taskName,
+									data: this.taskData,
+									argv: this.taskArgv,
+								},
+							});
+							this.pollTask();
+						}else{
+							this.statTask({
+								status: -100,
+								data: {
+									name: this.taskName,
+									data: this.taskData,
+									argv: this.taskArgv,
+								},
+							});
+							this.statTask({status: -205});
+							this.taskStat = 0;
+						}
 					});
-					this.pollTask();
-				}else{
-					/// TODO：启动失败如何处理
-					this.taskStat = -1;
-				}
 			},
 			killTask: async function() {
 				--this.taskStat;
@@ -100,6 +111,8 @@
 				if(r && r.errno == 0) {
 					this.taskId = "";
 					this.taskStat = 0;
+				}else{
+					this.statTask({status: -205});
 				}
 			},
 			statTask: function(task) {
@@ -123,8 +136,13 @@
 					break;
 				case -202: // 进程结束
 				case -203: // 异常
-				case -204:
+				case -205: // 启动失败
 					this.taskStat = 0;
+					this.taskPoll.push(task);
+					this.statTask({status: -200});
+					return false;
+				case -204: // 状态未知
+					this.taskStat = 2;
 					this.taskPoll.push(task);
 					this.statTask({status: -200});
 					return false;
