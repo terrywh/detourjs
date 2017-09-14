@@ -111,6 +111,8 @@
 				if(r && r.errno == 0) {
 					this.taskId = "";
 					this.taskStat = 0;
+					this.statTask({status: -206});
+					clearTimeout(this.timeoutPoll);
 				}else{
 					this.statTask({status: -205});
 				}
@@ -137,6 +139,7 @@
 				case -202: // 进程结束
 				case -203: // 异常
 				case -205: // 启动失败
+				case -206: // 用户终止
 					this.taskStat = 0;
 					this.taskPoll.push(task);
 					this.statTask({status: -200});
@@ -160,7 +163,7 @@
 					return {errno: 0, errmsg: "", data: {status: -204}};
 				}).then((r) => {
 					if(this.statTask(r && r.errno ? {status: -204} : r.data)) {
-						setTimeout(this.pollTask.bind(this), 250);
+						this.timeoutPoll = setTimeout(this.pollTask.bind(this), 250);
 						clearTimeout(this.timeoutScroll);
 						this.timeoutScroll = setTimeout(() => {
 							Velocity(this.$refs.progress.querySelector(".list-group-item:last-child"),

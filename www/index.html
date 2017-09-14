@@ -68,7 +68,7 @@
 					</form> 
 					<div class="list-group mt-2 mb-4">
 						<li v-for="poll in taskPoll" class="list-group-item"
-								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204 || poll.status== -205}">
+								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204 || poll.status== -205, 'list-group-item-warning': poll.status == -206}">
 
 							<small v-if="poll.status != -100 && poll.status != -200" class="float-right badge badge-light badge-pill">{{parseInt(poll.time/1000*10)/10}}s</small>
 
@@ -89,6 +89,7 @@
 							<pre v-if="poll.status == -203">❌ {{poll.data}}</pre>
 							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，任务可能还在运行~</pre>
 							<pre v-if="poll.status == -205">❌ 错误：无法获取任务状态，任务可能没有启动~</pre>
+							<pre v-if="poll.status == -206">⏹️ 终止：任务被用户终止运行，任务结果可能不确定~</pre>
 							<span v-if="poll.status == -200"></span>
 						</li>
 						<li class="list-group-item" v-if="taskLast.status != -200 && taskLast.status != -202 && taskLast.status != -203">
