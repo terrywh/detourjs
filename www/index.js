@@ -51,7 +51,7 @@
 			},
 			filterTask: function() {
 				for(let i=0;i<this.tasks.length;++i) {
-					if(this.tasks[i].indexOf(this.taskFilter) == -1) {
+					if(this.tasks[i].file.indexOf(this.taskFilter) == -1) {
 						this.tasks[i].hide = true;
 					}else{
 						this.tasks[i].hide = false;
@@ -60,7 +60,7 @@
 			},
 			filterData: function() {
 				for(let i=0;i<this.datas.length;++i) {
-					if(this.datas[i].indexOf(this.taskFilter) == -1) {
+					if(this.datas[i].file.indexOf(this.taskFilter) == -1) {
 						this.datas[i].hide = true;
 					}else{
 						this.datas[i].hide = false;
