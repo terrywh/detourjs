@@ -44,7 +44,7 @@
 								<a href="#" 
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: '' == taskData}"
-									v-on:click.prevent="setData({file: '', hide: false})">/empty.js</a>
+									v-on:click.prevent="setData({file: '', hide: false})">/empty.js <span class="float-right text-secondary">(空数据)</span></a>
 								<a v-for="data in datas" v-show="!data.hide" href="#" 
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: data.file == taskData}"
