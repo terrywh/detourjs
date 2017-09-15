@@ -8,6 +8,7 @@ const
 // 任务定义
 C.step("获取参数", async function() {
 	await C.info(JSON.stringify(A));
+	await C.warn("this is a warning message");
 });
 C.step("执行 SHELL 命令", async function() {
 	await C.wait(1000);
