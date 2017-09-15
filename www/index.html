@@ -24,6 +24,9 @@
 								</div>
 							</form>
 							<ul class="list-group mt-2">
+								<li class="list-group-item list-group-item-danger" v-if="tasks.length == 0">
+									❌ 看啥看，服务都完蛋了，能加载出来才诡异！
+								</li>
 								<a v-for="task in tasks" v-show="!task.hide" href="#" 
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: task.file == taskName}"

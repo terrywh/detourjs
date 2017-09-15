@@ -20,8 +20,9 @@
 			},
 		},
 		created: function() {
-			this.reload();
-			
+			this.reload().catch((err) => {
+				console.error("failed to load task definition:", err);
+			});
 			window.onbeforeunload = this.beforeUnload;
 			window.onhashchange   = this.hashChange;
 			this.hashChange();
