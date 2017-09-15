@@ -24,10 +24,10 @@
 								</div>
 							</form>
 							<ul class="list-group mt-2">
-								<li class="list-group-item list-group-item-danger" v-if="tasks.length == 0">
+								<li class="list-group-item list-group-item-danger" v-cloak v-if="taskStat == -1">
 									❌ 看啥看，服务都完蛋了，能加载出来才诡异！
 								</li>
-								<a v-for="task in tasks" v-show="!task.hide" href="#" 
+								<a v-for="task in tasks" v-show="!task.hide" href="#"
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: task.file == taskName}"
 									v-on:click.prevent="setTask(task)">{{task.file}}</a>
@@ -44,11 +44,11 @@
 								</div>
 							</form>
 							<ul class="list-group mt-2">
-								<a href="#" 
+								<a href="#"
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: '' == taskData}"
 									v-on:click.prevent="setData({file: '', hide: false})">/empty.js <span class="float-right text-secondary">(空数据)</span></a>
-								<a v-for="data in datas" v-show="!data.hide" href="#" 
+								<a v-for="data in datas" v-show="!data.hide" href="#"
 									class="list-group-item list-group-item-action"
 									v-bind:class="{active: data.file == taskData}"
 									v-on:click.prevent="setData(data)">{{data.file}}</a>
@@ -72,40 +72,16 @@
 								</button>
 							</span>
 						</div>
-					</form> 
-					<div class="list-group mt-2 mb-4" v-cloak>
-						<li v-for="poll in taskPoll" class="list-group-item"
-								v-bind:class="{'list-group-item-light': poll.status == -100 || poll.status == -200, 'list-group-item-info': poll.status > 0 && poll.data.substr(0,2) == 'i:', 'list-group-item-warning': poll.status > 0 && poll.data.substr(0,2) == 'w:', 'list-group-item-danger': poll.status == -203 || poll.status == -204 || poll.status== -205, 'list-group-item-warning': poll.status == -206}">
-
-							<small v-if="poll.status != -100 && poll.status != -200" class="float-right badge badge-light badge-pill">{{parseInt(poll.time/1000*10)/10}}s</small>
-
-							<div v-if="poll.status == -100">
-								<h5>
-									{{poll.data.name}}
-									<small><span class="text-secondary">{{poll.data.data}}</span></small>
-								</h5>
-								<div>
-									<small><span class="text-secondary">{{poll.data.argv}}</span></small>
-								</div>
-							</div>
-							<span v-if="poll.status == -101">✴️ 任务开始</span>
-							<span v-if="poll.status == 0">🕑 步骤： <code>{{poll.data}}</code></span>
-							<span v-if="poll.status == -201">✔️ 完成： <code>{{poll.data}}</code></span>
-							<pre v-if="poll.status > 0"><code>{{poll.data.substr(2)}}</code></pre>
-							<span v-if="poll.status == -202">✅ 任务结束</span>
-							<pre v-if="poll.status == -203">❌ {{poll.data}}</pre>
-							<pre v-if="poll.status == -204">❌ 错误：无法获取任务状态，任务可能还在运行~</pre>
-							<pre v-if="poll.status == -205">❌ 错误：无法获取任务状态，任务可能没有启动~</pre>
-							<pre v-if="poll.status == -206">⏹️ 终止：由于任务被用户提前终止，无法确认任务执行结果~</pre>
-							<span v-if="poll.status == -200"></span>
-						</li>
-						<li class="list-group-item" v-if="taskLast.status != -200 && taskLast.status != -202 && taskLast.status != -203">
-							<i class="loader">...</i>
-						</li>
+					</form>
+					<div class="mt-2 mb-4" v-cloak>
+						<!-- <task-poll-list ref="taskPoll"></task-poll-list> -->
+						<task-poll-stat ref="taskPoll"></task-poll-stat>
 					</div>
 				</div>
 			</div>
 		</div>
+		<script src="task-poll-list.js"></script>
+		<script src="task-poll-stat.js"></script>
 		<script src="index.js"></script>
 	</body>
 </html>

@@ -1,4 +1,17 @@
 (function() { "use strict";
+	async function invokeApi(uri) {
+		return fetch(uri).then((res) => {
+			return res.json();
+		}).then((r) => {
+			if(r.errno) {
+				let err = new Error(r.errmsg);
+				err.code = r.errno;
+				return Promise.reject(err);
+			}else{
+				return r.data;
+			}
+		});
+	}
 	let app = new Vue({
 		el:  "#app",
 		data: {
@@ -14,14 +27,10 @@
 			taskPoll: [],
 			taskTime: 0,
 		},
-		computed:  {
-			taskLast: function() {
-				return this.taskPoll[this.taskPoll.length - 1] || {status: -202};
-			},
-		},
 		created: function() {
 			this.reload().catch((err) => {
 				console.error("failed to load task definition:", err);
+				this.taskStat = -1;
 			});
 			window.onbeforeunload = this.beforeUnload;
 			window.onhashchange   = this.hashChange;
@@ -41,11 +50,11 @@
 			},
 			reload: async function() {
 				let items;
-				({data: items} = await (await fetch("/task/list")).json());
+				items = await invokeApi("/task/list");
 				this.tasks = items.map((item) => {
 					return {"file": item, "hide": false};
 				});
-				({data: items} = await (await fetch("/data/list")).json());
+				items = await invokeApi("/data/list");
 				this.datas = items.map((item) => {
 					return {"file": item, "hide": false};
 				});
@@ -68,113 +77,57 @@
 					}
 				}
 			},
-			startTask: async function() {
+			startTask: function() {
 				++this.taskStat;
-				fetch("/task/start?name="
+				invokeApi("/task/start?name="
 					+ encodeURIComponent(this.taskName)
 					+ "&data="
 					+ encodeURIComponent(this.taskData)
 					+ "&argv="
-					+ encodeURIComponent(this.taskArgv)).then(res => res.json(), err => {
-						return {errno: -1, errmsg: "failed to start task"};
-					}).then(r => {
-						if(r && r.errno == 0) {
-							this.taskId = r.data;
-							++this.taskStat;
-
-							this.taskPoll.splice(0, this.taskPoll.length);
-							this.statTask({
-								status: -100,
-								data: {
-									name: this.taskName,
-									data: this.taskData,
-									argv: this.taskArgv,
-								},
-							});
-							this.pollTask();
-						}else{
-							this.statTask({
-								status: -100,
-								data: {
-									name: this.taskName,
-									data: this.taskData,
-									argv: this.taskArgv,
-								},
-							});
-							this.statTask({status: -205});
-							this.taskStat = 0;
-						}
+					+ encodeURIComponent(this.taskArgv)).then(id => {
+						this.taskId = id;
+						++this.taskStat;
+						this.taskStat = this.$refs.taskPoll.start(
+							this.taskName, this.taskData, this.taskArgv);
+						this.pollTask();
+					}, err => {
+						this.$refs.taskPoll.start();
+						this.taskStat = this.$refs.taskPoll.noneStop();
 					});
 			},
-			killTask: async function() {
+			killTask: function() {
 				--this.taskStat;
-				let r = await (await fetch("/task/kill?id=" + this.taskId)).json();
-				if(r && r.errno == 0) {
+				invokeApi("/task/kill?id=" + this.taskId).then(() => {
 					this.taskId = "";
-					this.taskStat = 0;
-					this.statTask({status: -206});
-					// clearTimeout(this.timeoutPoll);
-				}else{
-					this.statTask({status: -205});
-				}
-			},
-			statTask: function(task) {
-				if(!this.taskTime) {
-					this.taskTime = Date.now()
-				}
-				task.time = Date.now() - this.taskTime;
-				this.taskTime += task.time;
-				switch(task.status) {
-				case 0: // 步骤开始
-					break;
-				case -100: // 准备启动
-					task.time = Date.now();
-					break;
-				case -101: // 进程开始
-					++this.taskStat; // 3
-					break;
-				case -200: // 结束底部
-					break;
-				case -201: // 步骤结束
-					break;
-				case -202: // 进程结束
-				case -203: // 异常
-				case -205: // 启动失败
-				case -206: // 用户终止
-					this.taskStat = 0;
-					this.taskPoll.push(task);
-					this.statTask({status: -200});
-					return false;
-				case -204: // 状态未知
-					this.taskStat = 2;
-					this.taskPoll.push(task);
-					this.statTask({status: -200});
-					return false;
-				default: // > 0 状态数据
-					if(task.data) break;
-					return true;
-				}
-				this.taskPoll.push(task);
-				return true;
+					this.taskStat = this.$refs.taskPoll.userStop();
+				}, err => {
+					this.taskStat = this.$refs.taskPoll.noneStop();
+				});
 			},
 			pollTask: function() {
 				fetch("/task/poll?id=" + this.taskId).then((res) => {
 					return res.json();
-				}, (err) => {
-					return {errno: 0, errmsg: "", data: {status: -204}};
 				}).then((r) => {
 					if(this.taskStat == 0) return; // 被用户提前终止时，取消本次结果
-					if(this.statTask(r && r.errno ? {status: -204} : r.data)) {
-						this.timeoutPoll = setTimeout(this.pollTask.bind(this), 250);
-						clearTimeout(this.timeoutScroll);
-						this.timeoutScroll = setTimeout(() => {
-							Velocity(this.$refs.progress.querySelector(".list-group-item:last-child"),
-								"scroll", { container: this.$refs.progress, duration: 250 });
-						}, 250);
+					if(r && r.errno) {
+						this.taskStat = this.$refs.taskPoll.errorStop();
+					}else{
+						this.taskStat = this.$refs.taskPoll.push(r.data);
+						if(this.taskStat > 1) this.pollNext();
 					}
-				}, (err) => {
-					this.statTask({status: -204});
+				}).catch(err => {
+					this.taskStat = this.$refs.taskPoll.errorStop();
 				});
+			},
+			pollNext: function() {
+				this.timeoutPoll = setTimeout(this.pollTask.bind(this), 250);
+				clearTimeout(this.timeoutScroll);
+				let el = this.$refs.progress.querySelector(".list-group-item:last-child");
+				if(el) {
+					this.timeoutScroll = setTimeout(() => {
+						Velocity(el,"scroll", { container: this.$refs.progress, duration: 250 });
+					}, 250);
+				}
 			},
 			setTask: function(task) {
 				location.hash = "#" + task.file + "|" + this.taskData + "|" + this.taskArgv;
