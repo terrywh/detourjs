@@ -2,7 +2,10 @@
   "name": "detourjs",
   "version": "0.1.0",
   "description": "define and execute task pipeline",
-  "main": "example.js",
+  "engines" : { 
+    "node" : ">=8.0.0",
+    "npm" : ">=5.0.0"
+  },
   "dependencies": {
     "chalk": "^2.1.0",
     "koa": "^2.3.0",
@@ -12,7 +15,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./bin/detour.js"
   },
   "repository": {
     "type": "git",

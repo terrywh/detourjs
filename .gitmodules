@@ -1,0 +1,3 @@
+[submodule "deps/nginx-sticky-module"]
+	path = deps/nginx-sticky-module
+	url = https://bitbucket.org/nginx-goodies/nginx-sticky-module-ng.git
