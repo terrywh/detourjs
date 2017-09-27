@@ -1,12 +1,12 @@
 "use strict";
 
-const 
+const
 	C = require("../../lib/controller"), // 执行、流程
-	D = require("../../lib/data"), // 数据文件
 	A = require('minimist')(process.argv.slice(2)); // 参数解析
-
+let D = require("../../lib/data"); // 数据文件
 // 任务定义
 C.step("获取参数", async function() {
+	D = await D();
 	await C.info(JSON.stringify(A));
 	await C.warn("this is a warning message");
 });

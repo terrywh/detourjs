@@ -1,9 +1,9 @@
 "use strict";
 
-const 
+const
 	C = require("../../lib/controller"), // 执行、流程
-	D = require("../../lib/data"), // 数据文件
 	A = require('minimist')(process.argv.slice(2)); // 参数解析
+let D = require("../../lib/data"); // 数据文件
 
 let SERVER = {
 	"host": "10.20.6.51",
@@ -14,6 +14,7 @@ let SERVER = {
 
 // 任务定义
 C.step("连接远程服务器并执行命令", async function() {
+	D = await D();
 	let sh = await C.ssh2(SERVER);
 	await C.info(await sh.bash("ls -a"));
 	sh.close(); // 手动关闭
@@ -31,5 +32,3 @@ C.step("远程读取文件", async function() {
 	await C.info(data);
 	// sftp 在任务完成后自动关闭
 });
-
-
